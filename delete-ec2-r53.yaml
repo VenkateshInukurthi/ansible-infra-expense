@@ -19,6 +19,13 @@
           - botocore
         executable: pip3.9
 
+    - name: Gather EC2 instances facts
+      amazon.aws.ec2_instance_facts:
+        filters:
+          "tag:Name": "{{ item }}"
+      loop: "{{ instances }}"
+      register: ec2_instances_facts
+
     - name: Delete DNS records
       amazon.aws.route53:
         state: absent
@@ -26,7 +33,7 @@
         record: "{{ (item.item == 'frontend') | ternary('expense', item.item) }}.{{ zone }}"
         type: "A"
         value: "{{ (item.item == 'frontend') | ternary(item.instances[0].public_ip_address, item.instances[0].private_ip_address) }}"
-      loop: "{{ ec2_instances.results }}"
+      loop: "{{ ec2_instances_facts.results }}"
       register: ec2_instances
 
     - name: Delete EC2 instances
