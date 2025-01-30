@@ -44,7 +44,7 @@
         wait: true
         overwrite: true
       loop: "{{ ec2_instances.results }}"
-      when: item.item != frontend
+      #when: item.item != frontend
 
     # Create public DNS record for frontend
     - name: Public DNS record for frontend
