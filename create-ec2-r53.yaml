@@ -12,6 +12,12 @@
       - frontend
     zone: laven.cloud
   tasks:
+    - name: Install bocore and boto3
+      ansible.builtin.pip:
+        name:
+          - boto3
+          - botocore
+        executable: pip3.9
     - name: Create ec2 instances
       amazon.aws.ec2_instance:
         name: "{{ item }}"
@@ -21,3 +27,7 @@
         image_id: "{{ ami_id }}"
       loop: "{{ instances }}"
       register: ec2_instances
+
+    - name: Print ec2_instances
+      ansible.builtin.debug:
+        msg: "{{ ec2_instances }}"
