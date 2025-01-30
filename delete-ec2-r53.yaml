@@ -21,6 +21,10 @@
       loop: "{{ instances }}"
       register: ec2_node_info
 
+    - name: Printing gathered facts
+      ansible.builtin.debug:
+        msg: "{{ ec2_node_info }}"
+
 #    - name: Delete DNS records
 #      amazon.aws.route53:
 #        state: absent
