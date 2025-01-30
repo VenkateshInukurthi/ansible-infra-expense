@@ -1,0 +1,23 @@
+# This play book is to create ec2 records and route53 records using ansible
+- name: Create ec2 and r53 records
+  hosts: local
+  connection: local
+  vars:
+    sg_id: sg-088988091b81eae5c
+    subnet_id: subnet-04d82804a30fa7790
+    ami_id: ami-09c813fb71547fc4f
+    instances:
+      - mysql
+      - backend
+      - frontend
+    zone: laven.cloud
+  tasks:
+    - name: Create ec2 instances
+      amazon.aws.ec2_instance:
+        name: "{{ item }}"
+        vpc_subnet_id: "{{ subnet_id }}"
+        instance_type: "t3.micro"
+        security_group: "{{ sg_id }}"
+        image_id: "{{ ami_id }}"
+      loop: "{{ instances }}"
+      register: ec2_instances
