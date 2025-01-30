@@ -12,15 +12,8 @@
       - frontend
     zone: laven.cloud
   tasks:
-    - name: Install boto3 and botocore
-      ansible.builtin.pip:
-        name:
-          - boto3
-          - botocore
-        executable: pip3.9
-
     - name: Gather EC2 instances facts
-      amazon.aws.ec2_instance_facts:
+      amazon.aws.ec2_instance_info::
         filters:
           "tag:Name": "{{ item }}"
       loop: "{{ instances }}"
