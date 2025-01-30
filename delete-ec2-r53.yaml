@@ -1,0 +1,36 @@
+# This playbook is to delete EC2 instances and Route 53 records created by the create-ec2-r53.yaml playbook
+- name: Delete EC2 and Route 53 records
+  hosts: localhost
+  connection: local
+  vars:
+    sg_id: sg-088988091b81eae5c
+    subnet_id: subnet-04d82804a30fa7790
+    ami_id: ami-09c813fb71547fc4f
+    instances:
+      - mysql
+      - backend
+      - frontend
+    zone: laven.cloud
+  tasks:
+    - name: Install boto3 and botocore
+      ansible.builtin.pip:
+        name:
+          - boto3
+          - botocore
+        executable: pip3.9
+
+    - name: Delete DNS records
+      amazon.aws.route53:
+        state: absent
+        zone: "{{ zone }}"
+        record: "{{ (item.item == 'frontend') | ternary('expense', item.item) }}.{{ zone }}"
+        type: "A"
+        value: "{{ (item.item == 'frontend') | ternary(item.instances[0].public_ip_address, item.instances[0].private_ip_address) }}"
+      loop: "{{ ec2_instances.results }}"
+      register: ec2_instances
+
+    - name: Delete EC2 instances
+      amazon.aws.ec2_instance:
+        instance_ids: "{{ ec2_instances.results | map(attribute='instances') | map(attribute='id') | list }}"
+        state: absent
+      loop: "{{ instances }}"
