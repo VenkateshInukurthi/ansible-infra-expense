@@ -25,18 +25,18 @@
       ansible.builtin.debug:
         msg: "{{ ec2_node_info }}"
 
-#    - name: Delete DNS records
-#      amazon.aws.route53:
-#        state: absent
-#        zone: "{{ zone }}"
-#        record: "{{ (item.item == 'frontend') | ternary('expense', item.item) }}.{{ zone }}"
-#        type: "A"
-#        value: "{{ (item.item == 'frontend') | ternary(item.instances[0].public_ip_address, item.instances[0].private_ip_address) }}"
-#      loop: "{{ ec2_instances_facts.results }}"
-#      register: ec2_instances
-#
-#    - name: Delete EC2 instances
-#      amazon.aws.ec2_instance:
-#        instance_ids: "{{ ec2_instances.results | map(attribute='instances') | map(attribute='id') | list }}"
-#        state: absent
-#      loop: "{{ instances }}"
+    - name: Delete DNS records
+      amazon.aws.route53:
+        state: absent
+        zone: "{{ zone }}"
+        record: "{{ (item.item == 'frontend') | ternary('expense', item.item) }}.{{ zone }}"
+        type: "A"
+        value: "{{ (item.item == 'frontend') | ternary(item.instances[0].public_ip_address, item.instances[0].private_ip_address) }}"
+      loop: "{{ ec2_node_info.results }}"
+      register: ec2_instances
+
+    - name: Delete EC2 instances
+      amazon.aws.ec2_instance:
+        instance_ids: "{{ ec2_instances.results | map(attribute='instances') | map(attribute='id') | list }}"
+        state: absent
+      loop: "{{ instances }}"
