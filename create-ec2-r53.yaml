@@ -1,5 +1,5 @@
-# This play book is to create ec2 records and route53 records using ansible
-- name: Create ec2 and r53 records
+# This playbook is to create EC2 instances and Route 53 records using Ansible
+- name: Create EC2 and Route 53 records
   hosts: localhost
   connection: local
   vars:
@@ -12,13 +12,14 @@
       - frontend
     zone: laven.cloud
   tasks:
-    - name: Install bocore and boto3
+    - name: Install boto3 and botocore
       ansible.builtin.pip:
         name:
           - boto3
           - botocore
         executable: pip3.9
-    - name: Create ec2 instances
+
+    - name: Create EC2 instances
       amazon.aws.ec2_instance:
         name: "{{ item }}"
         vpc_subnet_id: "{{ subnet_id }}"
@@ -28,36 +29,19 @@
       loop: "{{ instances }}"
       register: ec2_instances
 
-    - name: Print ec2_instances
+    - name: Print EC2 instances
       ansible.builtin.debug:
         msg: "{{ ec2_instances }}"
 
-    # Create private route 53 records
-    - name: Create private route 53 records
+    # Combined DNS task
+    - name: Create DNS records
       amazon.aws.route53:
         state: present
         zone: "{{ zone }}"
-        record: "{{ item.item }}.{{ zone }}"
+        record: "{{ item.item == 'frontend' | ternary('expense', item.item) }}.{{ zone }}"
         type: "A"
         ttl: 1
-        value: "{{ item.instances[0].private_ip_address }}"
+        value: "{{ item.instances[0].public_ip_address if item.item == 'frontend' else item.instances[0].private_ip_address }}"
         wait: true
         overwrite: true
       loop: "{{ ec2_instances.results }}"
-      #when: item.item != frontend
-
-    # Create public DNS record for frontend
-    - name: Public DNS record for frontend
-      vars:
-        public_name: expense
-      amazon.aws.route53:
-        state: present
-        zone: "{{ zone }}"
-        record: "{{ public_name }}.{{ zone }}"
-        type: "A"
-        ttl: 1
-        value: "{{ item.instances[0].public_ip_address }}"
-        wait: true
-        overwrite: true
-      loop: "{{ ec2_instances.results }}"
-      when: item.item == "frontend"
