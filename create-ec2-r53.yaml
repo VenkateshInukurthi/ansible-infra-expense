@@ -31,3 +31,33 @@
     - name: Print ec2_instances
       ansible.builtin.debug:
         msg: "{{ ec2_instances }}"
+
+    # Create private route 53 records
+    - name: Create private route 53 records
+      amazon.aws.route53:
+        state: present
+        zone: "{{ zone }}"
+        record: "{{ item.item }}.{{ zone }}"
+        type: "A"
+        ttl: 1
+        value: "{{ item.instances[0].private_ip_address }}"
+        wait: true
+        overwrite: true
+      loop: "{{ ec2_instances.results }}"
+      when: item.item != frontend
+
+    # Create public DNS record for frontend
+    - name: Public DNS record for frontend
+      vars:
+        public_name: expense
+      amazon.aws.route53:
+        state: present
+        zone: "{{ zone }}"
+        record: "{{ public_name }}.{{ zone }}"
+        type: "A"
+        ttl: 1
+        value: "{{ item.instances[0].public_ip_address }}"
+        wait: true
+        overwrite: true
+      loop: "{{ ec2_instances.results }}"
+      when: item.item == "frontend"
