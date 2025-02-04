@@ -12,7 +12,7 @@
       - user
       - shipping
       - payment
-      - frontend
+      - frontend-roboshop
       - mongodb
       - mysql
       - rabbitmq
@@ -46,7 +46,7 @@
       amazon.aws.route53:
         state: present
         zone: "{{ zone }}"
-        record: "{{ (item.item == 'frontend') | ternary('venky', item.item) }}.{{ zone }}"
+        record: "{{ (item.item == 'frontend-roboshop') | ternary('', item.item) }}.{{ zone }}"
         type: "A"
         ttl: 1
         value: "{{ (item.item == 'frontend') | ternary(item.instances[0].public_ip_address, item.instances[0].private_ip_address) }}"

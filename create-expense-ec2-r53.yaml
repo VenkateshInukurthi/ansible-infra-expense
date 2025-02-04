@@ -9,7 +9,7 @@
     instances:
       - mysql
       - backend
-      - frontend
+      - frontend-expense
     zone: laven.cloud
   tasks:
     - name: Install boto3 and botocore
@@ -38,10 +38,10 @@
       amazon.aws.route53:
         state: present
         zone: "{{ zone }}"
-        record: "{{ (item.item == 'frontend') | ternary('expense', item.item) }}.{{ zone }}"
+        record: "{{ (item.item == 'frontend-expense') | ternary('expense', item.item) }}.{{ zone }}"
         type: "A"
         ttl: 1
-        value: "{{ (item.item == 'frontend') | ternary(item.instances[0].public_ip_address, item.instances[0].private_ip_address) }}"
+        value: "{{ (item.item == 'frontend-expense') | ternary(item.instances[0].public_ip_address, item.instances[0].private_ip_address) }}"
         wait: true
         overwrite: true
       loop: "{{ ec2_instances.results }}"
