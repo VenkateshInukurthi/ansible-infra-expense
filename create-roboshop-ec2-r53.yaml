@@ -46,7 +46,8 @@
       amazon.aws.route53:
         state: present
         zone: "{{ zone }}"
-        record: "{{ (item.item == 'frontend-roboshop') | ternary('', item.item) }}.{{ zone }}"
+        #record: "{{ (item.item == 'frontend-roboshop') | ternary({{ zone }}, item.item) }}.{{ zone }}" # ternary(zone, item.item + '.' + zone)
+        record: "{{ (item.item == 'frontend-roboshop') | ternary(zone, item.item + '.' + zone) }}"
         type: "A"
         ttl: 1
         value: "{{ (item.item == 'frontend') | ternary(item.instances[0].public_ip_address, item.instances[0].private_ip_address) }}"
